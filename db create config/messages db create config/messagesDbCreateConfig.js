@@ -10,7 +10,6 @@ try {
         messageText TEXT,
         messageTime INTEGER
     )`);
-    // console.log('Message db connection is success.');
 } catch (err) {
     console.error('Db open error: ' + err.message);
 }

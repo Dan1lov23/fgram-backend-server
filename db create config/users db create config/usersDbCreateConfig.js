@@ -12,8 +12,6 @@ try {
         isActivated TEXT,
         token TEXT
     )`);
-
-    // console.log('User db connection is success.');
 } catch (err) {
     console.error('Db open error: ' + err.message);
 }
