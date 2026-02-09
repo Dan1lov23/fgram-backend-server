@@ -12,12 +12,11 @@ router.post('/sendMessage', async (req, res) => {
         const sendMessage = messagesDb.prepare('INSERT INTO messages (sender, recipient, messageText, messageTime) VALUES (?, ?, ?, ?)');
         sendMessage.run(sender, recipient, messageText, messageTime);
 
-        console.log("Success send message operation");
-        res.status(201).json({message: "Сообщение отправлено"})
+        res.status(201).json({message: "Message sent successfully."});
 
     } catch (error) {
-        console.error('Ошибка на сервере', error.message);
-        return res.status(500).json({ error: 'Внутреняя ошибка сервера' });
+        console.error('Server error:', error.message);
+        return res.status(500).json({ error: 'Server Error' });
     }
 })
 

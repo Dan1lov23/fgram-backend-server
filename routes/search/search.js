@@ -13,9 +13,9 @@ router.post('/searchUser', async (req, res) => {
         const searchedUser = usersDb.prepare('SELECT * FROM users WHERE username = ?').get(username);
 
         if (searchedUser) {
-            return res.status(201).json({message: "Полльзователь найден", user: searchedUser});
+            return res.status(201).json({message: "User is found", user: searchedUser});
         } else {
-            return res.status(404).json({error: "Полльзователь не найден"});
+            return res.status(404).json({error: "User is not found"});
         }
 
     } catch (error) {

@@ -5,6 +5,8 @@ const db = require('../../db create config/users db create config/usersDbCreateC
 
 const router = express.Router();
 
+import {email_password} from "../../email password/email_password";
+
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const SALT_ROUNDS = 10;
 
@@ -15,7 +17,7 @@ const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: 'svy1dan@gmail.com',
-        pass: 'ulym azvb wmll rsqp'
+        pass: `${email_password}`,
     }
 });
 
@@ -45,10 +47,10 @@ function sendEmail(to, subject, text, callback) {
 
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-            console.error('Ошибка отправки email:', error);
+            console.error('Email send operation fail:', error);
             callback(error);
         } else {
-            console.log('Email отправлен:', info.response);
+            console.log('Email is sending:', info.response);
             callback(null, info);
         }
     });
@@ -87,8 +89,7 @@ router.post('/register', async (req, res) => {
 
     } catch (err) {
         console.error('Server error:', err.message);
-        console.log(`----------------------------------------------------`);
-        return res.status(500).json({ marker: "fail", error: 'Internal server error' });
+        return res.status(500).json({ marker: "fail", error: 'Server error' });
     }
 });
 
@@ -117,7 +118,6 @@ router.post('/login', async (req, res) => {
         return res.status(201).json({ message: 'Successful login', token, username: user.username, iconSrc: user.iconSrc, email: user.email, isActivated: user.isActivated });
     } catch (err) {
         console.error('Server error:', err.message);
-        console.log(`----------------------------------------------------`);
         return res.status(500).json({ error: 'Server error' });
     }
 });
@@ -145,7 +145,6 @@ router.post('/sessionCheck', async (req, res) => {
 router.post('/activatedAccount', async (req, res) => {
 
     const { email } = req.body;
-    console.log(email);
 
     try {
 
@@ -159,7 +158,6 @@ router.post('/activatedAccount', async (req, res) => {
 
     } catch (error) {
         console.log("Server error:", error);
-        console.log(`----------------------------------------------------`);
         return res.status(500).json({ error: 'Server error' });
     }
 

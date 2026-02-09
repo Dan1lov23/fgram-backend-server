@@ -7,9 +7,9 @@ const router = express.Router();
 
 router.post('/getAllUserChats', async (req, res) => {
 
-    try {
+    const {username} = req.body;
 
-        const {username} = req.body;
+    try {
 
         const allUsersMessages = messagesDb.prepare("SELECT sender, recipient FROM messages WHERE sender = ? OR recipient = ?").all(username, username);
 
@@ -37,12 +37,12 @@ router.post('/getAllUserChats', async (req, res) => {
             res.status(201).json({chats: chatsNamesAndIcons});
 
         } else {
-            res.status(200).json({message: "Чаты не найдены"});
+            res.status(200).json({message: "Chats not found"});
         }
 
     } catch (error) {
-        console.error('Ошибка на сервере:', error.message);
-        return res.status(500).json({ error: 'Внутреняя ошибка сервера' });
+        console.error('Server error:', error.message);
+        return res.status(500).json({ error: 'Server Error' });
     }
 
 })

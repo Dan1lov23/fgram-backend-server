@@ -35,7 +35,7 @@ router.post('/changeAvatar', upload.single('image'), async (req, res) => {
     const { username } = req.body;
 
     if (!req.file || !username) {
-        return res.status(400).json({ error: 'Файл или имя пользователя отсутствует' });
+        return res.status(400).json({ error: 'File or username doesn\'t exist' });
     }
 
     const userDir = path.join('uploads', username);
@@ -51,7 +51,7 @@ router.post('/changeAvatar', upload.single('image'), async (req, res) => {
         }
 
     } catch (err) {
-        console.error('Ошибка при удалении старых файлов:', err);
+        console.error('Old files delete operations failed', err);
     }
 
     const oldPath = req.file.path;
@@ -63,10 +63,14 @@ router.post('/changeAvatar', upload.single('image'), async (req, res) => {
 
     const changeAvatar = usersDb.prepare('UPDATE users SET iconSrc = ? WHERE username = ?').run(filePath, username);
 
-    res.json({ message: 'Файл успешно загружен', path: filePath });
+    if (changeAvatar) {
+        res.json({ message: 'Icon is changed', path: filePath });
+    }
+
 });
 
 router.post('/changeUsername', async (req, res) => {
+
     const { oldUsername, newUsername} = req.body;
 
     try {
@@ -79,32 +83,28 @@ router.post('/changeUsername', async (req, res) => {
             changeMessagesRecipientResult = messagesDb.prepare("UPDATE messages SET recipient = ? WHERE recipient = ?").run(newUsername, oldUsername);
 
             if (changeMessagesResult.changes >= 0 && changeMessagesRecipientResult.changes >= 0) {
-                // console.log('Процесс смены имени пользователя прошел успешно');
                 res.status(200).json({ marker: "true" });
             } else {
-                // console.log('Не удалось обновить сообщения');
                 res.status(500).json({ marker: "false"});
             }
         } else {
-            // console.log('Пользователь не найден или не произведено обновление');
-            res.status(404).json({ message: "Пользователь не найден или не произведено обновление" });
+            res.status(404).json({ message: "Username update operation failed" });
         }
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ marker: "fail", message: "Ошибка сервера" });
+        console.log("Server error:", error.message);
+        res.status(500).json({ marker: "fail", message: "Server Error" });
     }
 });
 
 router.post('/changePassword', async (req, res) => {
+
     const { oldPassword, newPassword, username, token } = req.body;
-    console.log("\n Начат процесс смены пароля пользователя");
 
     try {
         const userPasswordRecord = usersDb.prepare('SELECT password FROM users WHERE username = ?').get(username);
 
         if (!userPasswordRecord) {
-            console.log("Пользователь не найден");
-            return res.status(404).json({ marker: "fail", message: "Пользователь не найден" });
+            return res.status(404).json({ marker: "fail", message: "User not found" });
         }
 
         const isPasswordValid = await bcrypt.compare(oldPassword, userPasswordRecord.password);
@@ -115,27 +115,23 @@ router.post('/changePassword', async (req, res) => {
             const changeResult = usersDb.prepare('UPDATE users SET password = ? WHERE username = ? AND token = ?').run(newHashedPassword, username, token);
 
             if (changeResult.changes > 0) {
-                console.log("Пароль успешно изменен");
                 res.status(200).json({ marker: "success" });
             } else {
-                console.log("Ошибка, пароль не изменен");
-                res.status(400).json({ marker: "fail", message: "Ошибка на сервере, пароль не изменен" });
+                res.status(400).json({ marker: "fail", message: "Password reset fail" });
             }
         } else {
-            console.log("Ошибка, неверный старый пароль");
-            res.status(401).json({ marker: "fail", message: "Неверный старый пароль" });
+            res.status(401).json({ marker: "fail", message: "Password not match" });
         }
 
     } catch (error) {
-        console.error('Ошибка на сервере:', error.message);
-        return res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+        console.error('Server error:', error.message);
+        return res.status(500).json({ error: 'Server Error' });
     }
 });
 
 router.post('/deleteAccount', async (req, res) => {
 
     const { username, token } = req.body;
-    console.log(username, token);
 
     try {
 
@@ -143,7 +139,6 @@ router.post('/deleteAccount', async (req, res) => {
 
         if (user) {
 
-            // console.log("User is found");
             const deletePassword = usersDb.prepare('DELETE FROM users WHERE username = ?');
             deletePassword.run(username);
 
@@ -153,13 +148,12 @@ router.post('/deleteAccount', async (req, res) => {
             res.status(201).json({ marker: "success", message: "User was deleted" });
 
         } else {
-            // console.log("User not found");
             res.status(401).json({ marker: "fail", message: "User not found" });
         }
 
 
     } catch (error) {
-        console.log(error);
+        console.log("Server error:", error.message);
         res.status(401).json({ marker: "fail", message: "Server error" });
     }
 
