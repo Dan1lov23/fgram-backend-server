@@ -6,9 +6,9 @@ const router = express.Router();
 
 router.post('/searchUser', async (req, res) => {
 
-    try {
+    const {username} = req.body;
 
-        const {username} = req.body;
+    try {
 
         const searchedUser = usersDb.prepare('SELECT * FROM users WHERE username = ?').get(username);
 
