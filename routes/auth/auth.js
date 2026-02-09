@@ -5,7 +5,7 @@ const db = require('../../db create config/users db create config/usersDbCreateC
 
 const router = express.Router();
 
-import {email_password} from "../../email password/email_password";
+const email_password = require("../../email password/email_password");
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const SALT_ROUNDS = 10;
