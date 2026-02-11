@@ -12,6 +12,7 @@ const SALT_ROUNDS = 10;
 
 const nodemailer = require('nodemailer');
 const user = require("nodemailer/lib/smtp-connection");
+const err = require("multer/lib/multer-error");
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -22,16 +23,6 @@ const transporter = nodemailer.createTransport({
 });
 
 function sendEmail(to, subject, text, callback) {
-
-    const setIsActivatedFunction = () => {
-        fetch("http://localhost:3000/api/auth/activatedAccount", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({email: to})
-        } )
-    }
 
     const mailOptions = {
         from: 'svy1dan@gmail.com',
@@ -158,6 +149,33 @@ router.post('/activatedAccount', async (req, res) => {
 
     } catch (error) {
         console.log("Server error:", error);
+        return res.status(500).json({ error: 'Server error' });
+    }
+
+})
+
+router.post('/checkActivated', async (req, res) => {
+
+    const { username, password } = req.body;
+
+    try {
+
+        const user = db.prepare("SELECT password, isActivated FROM users WHERE username = ? AND password = ?").get(username, password);
+
+        if (user) {
+
+            const isPasswordValid = await bcrypt.compare(password, user.password);
+
+            if (isPasswordValid) {
+                res.status(201);
+            } else {
+                res.status(401);
+            }
+        }
+
+
+    } catch (error) {
+        console.error('Server error:', err);
         return res.status(500).json({ error: 'Server error' });
     }
 
